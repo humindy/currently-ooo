@@ -54,25 +54,35 @@ afterEach(() => {
 
 describe("TripCard", () => {
   it("renders the trip name and date range", () => {
-    render(<TripCard trip={trip} onDelete={vi.fn()} />);
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
     expect(screen.getByText("Japan Spring 2026")).toBeInTheDocument();
     expect(screen.getByText(/Apr 4/)).toBeInTheDocument();
   });
 
   it("renders destination tags", () => {
-    render(<TripCard trip={trip} onDelete={vi.fn()} />);
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
     expect(screen.getByText("Tokyo")).toBeInTheDocument();
     expect(screen.getByText("Kyoto")).toBeInTheDocument();
   });
 
   it("links to /trips/[tripId]", () => {
-    render(<TripCard trip={trip} onDelete={vi.fn()} />);
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
     expect(screen.getByRole("link")).toHaveAttribute("href", "/trips/trip-1");
+  });
+
+  it("calls onEdit when the edit button is clicked", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={onEdit} />);
+    await user.click(
+      screen.getByRole("button", { name: /edit japan spring 2026/i })
+    );
+    expect(onEdit).toHaveBeenCalledOnce();
   });
 
   it("shows the confirmation dialog when the delete button is clicked", async () => {
     const user = userEvent.setup();
-    render(<TripCard trip={trip} onDelete={vi.fn()} />);
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
     await user.click(
       screen.getByRole("button", { name: /delete japan spring 2026/i })
     );
@@ -86,7 +96,7 @@ describe("TripCard", () => {
 
   it("hides the confirmation dialog when Cancel is clicked", async () => {
     const user = userEvent.setup();
-    render(<TripCard trip={trip} onDelete={vi.fn()} />);
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
     await user.click(
       screen.getByRole("button", { name: /delete japan spring 2026/i })
     );
@@ -99,7 +109,7 @@ describe("TripCard", () => {
   it("calls deleteTrip and onDelete when Delete is confirmed", async () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
-    render(<TripCard trip={trip} onDelete={onDelete} />);
+    render(<TripCard trip={trip} onDelete={onDelete} onEdit={vi.fn()} />);
 
     await user.click(
       screen.getByRole("button", { name: /delete japan spring 2026/i })

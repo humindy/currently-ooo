@@ -58,20 +58,18 @@ export interface Trip {
     | "train"
     | "car-rental"
     | "ferry"
-    | "bus"
-    | "transfer"
-    | "other";
-  
+    | "bus";
+
   export interface Transportation {
     id: string;
     tripId: string;
     type: TransportationType;
     // For most types: departure -> arrival
-    // For car rentals: pickup -> dropoff
+    // For car rentals: pickup -> dropoff (dropoff is optional)
     departureLocation: string;
-    arrivalLocation: string;
+    arrivalLocation?: string;
     departureDateTime: string; // ISO datetime string
-    arrivalDateTime: string;   // ISO datetime string
+    arrivalDateTime?: string;  // ISO datetime string; optional for car rentals
     confirmationNumber?: string;
     cost?: number;
     notes?: string; // e.g. "Seat 14A", "Rental car: Toyota Corolla"

@@ -25,12 +25,6 @@ function renderCard(overrides?: Partial<{ onDelete: () => void; onEdit: () => vo
   );
 }
 
-async function openMenu(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    screen.getByRole("button", { name: /options for park hotel tokyo/i })
-  );
-}
-
 describe("LodgingCard", () => {
   it("renders the lodging name", () => {
     renderCard();
@@ -50,7 +44,6 @@ describe("LodgingCard", () => {
 
   it("renders the total cost (cost/night × nights)", () => {
     renderCard();
-    // 480/night × 3 nights = $1,440
     expect(screen.getByText("$1,440")).toBeInTheDocument();
   });
 
@@ -72,28 +65,18 @@ describe("LodgingCard", () => {
     expect(screen.queryByText(/^\$\d/)).not.toBeInTheDocument();
   });
 
-  it("shows Edit and Delete options when the three-dot button is clicked", async () => {
-    const user = userEvent.setup();
-    renderCard();
-    await openMenu(user);
-    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
-  });
-
-  it("calls onEdit when Edit is clicked in the menu", async () => {
+  it("calls onEdit when the edit button is clicked", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     renderCard({ onEdit });
-    await openMenu(user);
-    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: /edit park hotel tokyo/i }));
     expect(onEdit).toHaveBeenCalledOnce();
   });
 
-  it("shows the confirmation dialog when Delete is clicked in the menu", async () => {
+  it("shows the confirmation dialog when the delete button is clicked", async () => {
     const user = userEvent.setup();
     renderCard();
-    await openMenu(user);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: /delete park hotel tokyo/i }));
     expect(screen.getByText("Remove lodging?")).toBeInTheDocument();
     expect(
       screen.getByText("Park Hotel Tokyo", { selector: "span" })
@@ -103,8 +86,7 @@ describe("LodgingCard", () => {
   it("hides the dialog when Cancel is clicked", async () => {
     const user = userEvent.setup();
     renderCard();
-    await openMenu(user);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: /delete park hotel tokyo/i }));
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByText("Remove lodging?")).not.toBeInTheDocument();
   });
@@ -113,8 +95,7 @@ describe("LodgingCard", () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
     renderCard({ onDelete });
-    await openMenu(user);
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: /delete park hotel tokyo/i }));
     await user.click(screen.getByRole("button", { name: "Remove" }));
     expect(onDelete).toHaveBeenCalledOnce();
   });

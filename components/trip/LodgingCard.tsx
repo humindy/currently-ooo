@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Hotel, Pencil, Trash2 } from "lucide-react";
 import type { Lodging } from "@/lib/types";
 
 function shortDate(iso: string) {
@@ -26,7 +26,6 @@ export default function LodgingCard({
   onDelete: () => void;
   onEdit: () => void;
 }) {
-  const [showMenu, setShowMenu] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const nights = nightsBetween(lodging.checkIn, lodging.checkOut);
   const totalCost = lodging.cost !== undefined ? lodging.cost * nights : undefined;
@@ -34,8 +33,10 @@ export default function LodgingCard({
   return (
     <>
       <div className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900 sm:gap-4 sm:p-4">
-        {/* Image placeholder */}
-        <div className="hidden h-14 w-14 flex-none rounded-lg bg-zinc-200 dark:bg-zinc-700 sm:block" />
+        {/* Hotel icon */}
+        <div className="hidden h-14 w-14 flex-none items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 sm:flex">
+          <Hotel size={24} className="text-zinc-400 dark:text-zinc-500" />
+        </div>
 
         {/* Name + address */}
         <div className="min-w-0 flex-[1.6]">
@@ -78,47 +79,22 @@ export default function LodgingCard({
           </div>
         )}
 
-        {/* Three-dot menu — in-flow so it never overlays text on mobile */}
-        <div className="relative flex-none">
+        {/* Edit + Delete — in-flow, never overlays text on mobile */}
+        <div className="flex flex-none items-center gap-0.5 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100">
           <button
-            onClick={() => setShowMenu((v) => !v)}
-            aria-label={`Options for ${lodging.name}`}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 opacity-100 transition-colors hover:bg-zinc-100 hover:text-zinc-700 lg:opacity-0 lg:group-hover:opacity-100 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+            onClick={onEdit}
+            aria-label={`Edit ${lodging.name}`}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
           >
-            <MoreVertical size={15} />
+            <Pencil size={14} />
           </button>
-
-          {showMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowMenu(false)}
-              />
-              <div className="absolute right-0 top-8 z-20 min-w-[140px] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    onEdit();
-                  }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                >
-                  <Pencil size={14} />
-                  Edit
-                </button>
-                <div className="mx-3 h-px bg-zinc-100 dark:bg-zinc-800" />
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    setShowConfirm(true);
-                  }}
-                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
+          <button
+            onClick={() => setShowConfirm(true)}
+            aria-label={`Delete ${lodging.name}`}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
 

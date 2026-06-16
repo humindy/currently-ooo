@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getTrip } from "@/lib/storage";
-import { Trip } from "@/lib/types";
+import { getTrip, saveTrip } from "@/lib/storage";
+import type { Destination, Trip } from "@/lib/types";
+import { Pencil, Trash2, X } from "lucide-react";
 
 const TABS = [
   { label: "Overview", slug: null },
@@ -48,10 +49,45 @@ function usd(n: number) {
 export default function TripOverviewPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const [trip, setTrip] = useState<Trip | null | undefined>(undefined);
+  const [deletingDestId, setDeletingDestId] = useState<string | null>(null);
+  const [editingDest, setEditingDest] = useState<Destination | null>(null);
+  const [destForm, setDestForm] = useState({ name: "", startDate: "", endDate: "", notes: "" });
+  const [destNameError, setDestNameError] = useState(false);
 
   useEffect(() => {
     setTrip(getTrip(tripId) ?? null);
   }, [tripId]);
+
+  function openEditDest(dest: Destination) {
+    setDestForm({ name: dest.name, startDate: dest.startDate, endDate: dest.endDate, notes: dest.notes ?? "" });
+    setDestNameError(false);
+    setEditingDest(dest);
+  }
+
+  function handleDeleteDest(destId: string) {
+    if (!trip) return;
+    const updated = { ...trip, destinations: trip.destinations.filter((d) => d.id !== destId) };
+    saveTrip(updated);
+    setTrip(updated);
+    setDeletingDestId(null);
+  }
+
+  function handleSaveDest(e: React.FormEvent) {
+    e.preventDefault();
+    if (!destForm.name.trim()) { setDestNameError(true); return; }
+    if (!editingDest || !trip) return;
+    const updated = {
+      ...trip,
+      destinations: trip.destinations.map((d) =>
+        d.id === editingDest.id
+          ? { ...d, name: destForm.name.trim(), startDate: destForm.startDate, endDate: destForm.endDate, notes: destForm.notes.trim() || undefined }
+          : d
+      ),
+    };
+    saveTrip(updated);
+    setTrip(updated);
+    setEditingDest(null);
+  }
 
   if (trip === undefined) return null;
 
@@ -156,7 +192,7 @@ export default function TripOverviewPage() {
                   return (
                     <div
                       key={dest.id}
-                      className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+                      className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
                     >
                       <div className="h-12 w-12 flex-none rounded-lg bg-zinc-200 dark:bg-zinc-700" />
                       <div className="min-w-0 flex-1">
@@ -168,6 +204,22 @@ export default function TripOverviewPage() {
                           {" · "}
                           {shortDate(dest.startDate)}–{shortDate(dest.endDate)}
                         </div>
+                      </div>
+                      <div className="flex flex-none items-center gap-0.5 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100">
+                        <button
+                          onClick={() => openEditDest(dest)}
+                          aria-label={`Edit ${dest.name}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => setDeletingDestId(dest.id)}
+                          aria-label={`Delete ${dest.name}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -249,6 +301,125 @@ export default function TripOverviewPage() {
           </section>
         </div>
       </main>
+
+      {/* Delete destination confirmation */}
+      {deletingDestId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setDeletingDestId(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
+              Remove destination?
+            </h2>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              Remove{" "}
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {trip.destinations.find((d) => d.id === deletingDestId)?.name}
+              </span>
+              ? This cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setDeletingDestId(null)}
+                className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteDest(deletingDestId)}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit destination modal */}
+      {editingDest && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setEditingDest(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
+                Edit destination
+              </h2>
+              <button
+                onClick={() => setEditingDest(null)}
+                aria-label="Close"
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveDest} noValidate>
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={destForm.name}
+                  onChange={(e) => { setDestForm((p) => ({ ...p, name: e.target.value })); setDestNameError(false); }}
+                  placeholder="e.g. Tokyo, Japan"
+                  className={`h-9 w-full rounded-lg border px-3 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:bg-zinc-800 dark:text-zinc-100 ${destNameError ? "border-red-400" : "border-zinc-300 dark:border-zinc-700"}`}
+                />
+                {destNameError && <p className="mt-1 text-xs text-red-500">Name is required.</p>}
+              </div>
+              <div className="mb-6 flex gap-3">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                    Start date
+                  </label>
+                  <input
+                    type="date"
+                    value={destForm.startDate}
+                    onChange={(e) => setDestForm((p) => ({ ...p, startDate: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                    End date
+                  </label>
+                  <input
+                    type="date"
+                    value={destForm.endDate}
+                    min={destForm.startDate || undefined}
+                    onChange={(e) => setDestForm((p) => ({ ...p, endDate: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingDest(null)}
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-bold text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-teal-700 px-5 py-2 text-sm font-bold text-white hover:bg-teal-800"
+                >
+                  Save changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

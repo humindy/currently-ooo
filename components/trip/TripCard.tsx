@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Trip } from "@/lib/types";
 import { deleteTrip } from "@/lib/storage";
 
@@ -27,9 +27,11 @@ function formatDateRange(startDate: string, endDate: string): string {
 export default function TripCard({
   trip,
   onDelete,
+  onEdit,
 }: {
   trip: Trip;
   onDelete: () => void;
+  onEdit: () => void;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const destinationCount = trip.destinations.length;
@@ -42,7 +44,7 @@ export default function TripCard({
 
   return (
     <>
-      {/* Outer div carries `group` so hover state works for both Link and button */}
+      {/* Outer div carries `group` so hover state works for both Link and buttons */}
       <div className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
         <Link href={`/trips/${trip.id}`} className="flex flex-col">
           <div className="flex h-24 items-end bg-[repeating-linear-gradient(45deg,theme(colors.zinc.100),theme(colors.zinc.100)_6px,theme(colors.zinc.200)_6px,theme(colors.zinc.200)_12px)] p-2 dark:bg-[repeating-linear-gradient(45deg,theme(colors.zinc.800),theme(colors.zinc.800)_6px,theme(colors.zinc.700)_6px,theme(colors.zinc.700)_12px)]">
@@ -87,14 +89,23 @@ export default function TripCard({
           </div>
         </Link>
 
-        {/* Trash button — sibling to Link to avoid invalid nested interactive elements */}
-        <button
-          onClick={() => setShowConfirm(true)}
-          aria-label={`Delete ${trip.name}`}
-          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-zinc-400 shadow-sm transition-opacity hover:bg-red-50 hover:text-red-500 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 dark:bg-zinc-800/90 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-        >
-          <Trash2 size={14} />
-        </button>
+        {/* Edit + Delete — siblings to Link to avoid nested interactive elements */}
+        <div className="absolute right-2 top-2 flex items-center gap-0.5 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100">
+          <button
+            onClick={onEdit}
+            aria-label={`Edit ${trip.name}`}
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-zinc-400 shadow-sm transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:bg-zinc-800/90 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setShowConfirm(true)}
+            aria-label={`Delete ${trip.name}`}
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-zinc-400 shadow-sm transition-colors hover:bg-red-50 hover:text-red-500 dark:bg-zinc-800/90 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Confirmation dialog */}
