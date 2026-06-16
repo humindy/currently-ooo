@@ -73,7 +73,13 @@ export default function TripOverviewPage() {
 
   const days = totalDays(trip.startDate, trip.endDate);
   const cityCount = trip.destinations.length;
-  const lodgingCost = trip.lodging.reduce((s, l) => s + (l.cost ?? 0), 0);
+  const lodgingCost = trip.lodging.reduce((s, l) => {
+    if (!l.cost) return s;
+    const nights = Math.max(0, Math.round(
+      (new Date(l.checkOut + "T00:00:00").getTime() - new Date(l.checkIn + "T00:00:00").getTime()) / 86_400_000
+    ));
+    return s + l.cost * nights;
+  }, 0);
   const transportCost = trip.transportation.reduce((s, t) => s + (t.cost ?? 0), 0);
   const activitiesCost = trip.activities.reduce((s, a) => s + (a.cost ?? 0), 0);
   const totalCost = lodgingCost + transportCost + activitiesCost;
