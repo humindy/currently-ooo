@@ -78,7 +78,11 @@ export default function Home() {
               </Link>
 
               {trips.map((trip) => (
-                <TripCard key={trip.id} trip={trip} />
+                <TripCard
+                  key={trip.id}
+                  trip={trip}
+                  onDelete={() => setTrips(getTrips())}
+                />
               ))}
             </div>
           </>
