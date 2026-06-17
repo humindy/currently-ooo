@@ -8,8 +8,7 @@ import type { Trip } from "@/lib/types";
 import BudgetChart from "@/components/budget/BudgetChart";
 
 const TABS = [
-  { label: "Overview", slug: null },
-  { label: "Day-by-Day", slug: "itinerary" },
+  { label: "Itinerary", slug: null },
   { label: "Lodging", slug: "lodging" },
   { label: "Transport", slug: "transportation" },
   { label: "Activities", slug: "activities" },

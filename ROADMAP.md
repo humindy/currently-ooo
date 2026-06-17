@@ -30,11 +30,10 @@ Design wireframes: "Wayfarer Wireframes" — https://claude.ai/design/p/99c07230
 |---------|--------|-----------|-------|
 | Trip dashboard | ✅ | `app/page.tsx`, `components/trip/TripCard.tsx` | Lists trips; empty state; delete on card hover |
 | Create new trip | ✅ | `app/trips/new/page.tsx` | Name + date range; validates end after start |
-| Trip overview | ✅ | `app/trips/[tripId]/page.tsx` | Tab nav hub for a trip |
+| Trip home (itinerary + at-a-glance) | 🏗️ | `app/trips/[tripId]/page.tsx`, `components/itinerary/ItineraryDayColumn.tsx` | The trip landing page IS the day-by-day itinerary (main column) with an "At a glance" summary panel to the right (dates, day count, cost totals). Replaces the old Overview. Itinerary logic already exists and is tested; the merge into the landing page is the remaining work. |
 | Lodging | ✅ | `app/trips/[tripId]/lodging/page.tsx`, `components/trip/LodgingCard.tsx` | Add / edit / delete |
 | Transportation | ✅ | `app/trips/[tripId]/transportation/page.tsx`, `components/trip/TransportationCard.tsx` | Add / edit / delete |
 | Activities | ✅ | `app/trips/[tripId]/activities/page.tsx`, `components/trip/ActivityCard.tsx` | Add / edit / delete |
-| Day-by-Day itinerary | ✅ | `app/trips/[tripId]/itinerary/page.tsx`, `components/itinerary/ItineraryDayColumn.tsx` | Generates a day per trip date; collects + chronologically sorts lodging check-in/out, transport departures, activities; per-kind styling; "Nothing planned yet" empty state. Tests passing. |
 | Budget summary | 🔲 | `app/trips/[tripId]/budget/page.tsx` (todo) | Total cost by category (lodging / transport / activities) with a recharts chart; per-day or per-destination breakdown. Tab already exists in nav. |
 
 ## Phase 2 — Stretch goals
@@ -67,6 +66,8 @@ Dated one-liners for choices a fresh session shouldn't have to re-derive.
 - **2026-06-16** — Persistence is abstracted behind `lib/storage.ts` (localStorage, key `currently-ooo:trips`). Components never touch `localStorage` directly so we can swap to a real DB (e.g. Supabase) by changing only that file.
 - **2026-06-16** — `ItineraryItem` is a discriminated union (`kind` + `data`) so the itinerary timeline can render lodging, transport, and activities uniformly. The itinerary page uses a slightly richer `ItineraryDayItem` variant adding `event` ("checkin"/"checkout") and `sortKey` for in-day ordering.
 - **2026-06-16** — One feature per commit (see git history pattern).
+- **2026-06-17** — Restructured the trip landing page: the old Overview (Destinations + Quick access) is replaced by the day-by-day itinerary as the main column, with an "At a glance" summary panel (dates, day count, cost totals) to the right. The separate "Day-by-Day" tab/route is removed — the trip home IS the itinerary.
+- **2026-06-17** — Cut the **Destinations** UI. It had no add flow and the `destinationId` links on `Lodging`/`Activity` were unused, so the section was dead. The `Destination` type and `addDestination` helper remain in code for now (no cost to leaving them); may be reintroduced later as itinerary day-grouping (e.g. "Tokyo → Kyoto" segments).
 
 ## References
 

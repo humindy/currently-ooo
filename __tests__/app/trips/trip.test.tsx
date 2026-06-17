@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import ItineraryPage, { generateDates, buildDayItems } from "@/app/trips/[tripId]/itinerary/page";
+import TripPage from "@/app/trips/[tripId]/page";
+import { generateDates, buildDayItems } from "@/lib/itinerary";
 import { saveTrip } from "@/lib/storage";
 import type { Activity, Lodging, Transportation, Trip } from "@/lib/types";
 
@@ -37,7 +38,8 @@ const LODGING: Lodging = {
   name: "Park Hotel Tokyo",
   address: "Shiodome, Tokyo",
   checkIn: "2026-04-04",
-  checkOut: "2026-04-06",
+  checkOut: "2026-04-06", // 2 nights
+  cost: 200, // per night → $400 total
 };
 
 const TRANSPORT: Transportation = {
@@ -48,6 +50,7 @@ const TRANSPORT: Transportation = {
   arrivalLocation: "Osaka Kansai",
   departureDateTime: "2026-04-05T10:00",
   confirmationNumber: "JL123",
+  cost: 280,
 };
 
 const ACTIVITY: Activity = {
@@ -58,6 +61,7 @@ const ACTIVITY: Activity = {
   date: "2026-04-06",
   startTime: "19:00",
   location: "Ginza, Tokyo",
+  cost: 450,
 };
 
 beforeEach(() => {
@@ -191,9 +195,9 @@ describe("buildDayItems — chronological sorting", () => {
 
 // ── Page rendering tests ──────────────────────────────────────────────────────
 
-describe("ItineraryPage — day headers", () => {
+describe("TripPage — day headers", () => {
   it("renders one day section per trip day", async () => {
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(screen.getByText("Day 1")).toBeInTheDocument()
     );
@@ -202,10 +206,10 @@ describe("ItineraryPage — day headers", () => {
   });
 });
 
-describe("ItineraryPage — item rendering", () => {
+describe("TripPage — item rendering", () => {
   it("shows lodging check-in on the check-in day", async () => {
     saveTrip({ ...TEST_TRIP, lodging: [LODGING] });
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(screen.getByText(/Check in — Park Hotel Tokyo/)).toBeInTheDocument()
     );
@@ -213,7 +217,7 @@ describe("ItineraryPage — item rendering", () => {
 
   it("shows lodging check-out on the check-out day", async () => {
     saveTrip({ ...TEST_TRIP, lodging: [LODGING] });
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(screen.getByText(/Check out — Park Hotel Tokyo/)).toBeInTheDocument()
     );
@@ -221,7 +225,7 @@ describe("ItineraryPage — item rendering", () => {
 
   it("shows transportation on its departure date", async () => {
     saveTrip({ ...TEST_TRIP, transportation: [TRANSPORT] });
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(
         screen.getByText(/Tokyo Narita → Osaka Kansai/)
@@ -231,14 +235,14 @@ describe("ItineraryPage — item rendering", () => {
 
   it("shows activity on its activity date", async () => {
     saveTrip({ ...TEST_TRIP, activities: [ACTIVITY] });
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(screen.getByText("Sukiyabashi Jiro")).toBeInTheDocument()
     );
   });
 
   it("shows 'Nothing planned yet' for days with no items", async () => {
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() => {
       const placeholders = screen.getAllByText("Nothing planned yet");
       // TEST_TRIP has no items → all 3 days show the placeholder
@@ -247,7 +251,7 @@ describe("ItineraryPage — item rendering", () => {
   });
 });
 
-describe("ItineraryPage — chronological ordering in DOM", () => {
+describe("TripPage — chronological ordering in DOM", () => {
   it("renders earlier items before later ones within a day", async () => {
     const earlyFlight: Transportation = {
       ...TRANSPORT,
@@ -262,7 +266,7 @@ describe("ItineraryPage — chronological ordering in DOM", () => {
       transportation: [earlyFlight],
       activities: [eveningActivity],
     });
-    render(<ItineraryPage />);
+    render(<TripPage />);
     await waitFor(() =>
       expect(screen.getByText("Dinner Time")).toBeInTheDocument()
     );
