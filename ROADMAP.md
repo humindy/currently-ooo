@@ -3,7 +3,7 @@
 > Living plan + status tracker for the app. Update the status emoji as work lands so a
 > fresh session (or another agent) can pick up where we left off.
 >
-> **For architecture, data model, conventions, and commands, see [`CLAUDE.md`](./CLAUDE.md).**
+> **For architecture, data model, conventions, and commands, see `[CLAUDE.md](./CLAUDE.md)`.**
 > This doc is *only* the plan and status — it intentionally does not duplicate that.
 
 ## Vision
@@ -13,40 +13,46 @@ It replaces spreadsheet-based itinerary planning: a traveler creates a trip, add
 transportation, and activities, and sees them assembled into a chronological day-by-day
 itinerary with a budget summary.
 
-Design wireframes: "Wayfarer Wireframes" — https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f (8 screens)
+Design wireframes: "Wayfarer Wireframes" — [https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f](https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f) (8 screens)
 
 ## Status legend
 
-| Emoji | Meaning |
-|-------|---------|
-| ✅ | Done & tested |
-| 🏗️ | In progress |
-| 🔲 | Not started |
-| 💡 | Stretch goal (Phase 2) |
+
+| Emoji | Meaning                |
+| ----- | ---------------------- |
+| ✅     | Done & tested          |
+| 🏗️   | In progress            |
+| 🔲    | Not started            |
+| 💡    | Stretch goal (Phase 2) |
+
 
 ## Phase 1 — Core features
 
-| Feature | Status | Key files | Notes |
-|---------|--------|-----------|-------|
-| Trip dashboard | ✅ | `app/page.tsx`, `components/trip/TripCard.tsx` | Lists trips; empty state; delete on card hover |
-| Create new trip | ✅ | `app/trips/new/page.tsx` | Name + date range; validates end after start |
-| Trip home (itinerary + at-a-glance) | 🏗️ | `app/trips/[tripId]/page.tsx`, `components/itinerary/ItineraryDayColumn.tsx` | The trip landing page IS the day-by-day itinerary (main column) with an "At a glance" summary panel to the right (dates, day count, cost totals). Replaces the old Overview. Itinerary logic already exists and is tested; the merge into the landing page is the remaining work. |
-| Lodging | ✅ | `app/trips/[tripId]/lodging/page.tsx`, `components/trip/LodgingCard.tsx` | Add / edit / delete |
-| Transportation | ✅ | `app/trips/[tripId]/transportation/page.tsx`, `components/trip/TransportationCard.tsx` | Add / edit / delete |
-| Activities | ✅ | `app/trips/[tripId]/activities/page.tsx`, `components/trip/ActivityCard.tsx` | Add / edit / delete |
-| Budget summary | 🔲 | `app/trips/[tripId]/budget/page.tsx` (todo) | Total cost by category (lodging / transport / activities) with a recharts chart; optional per-day breakdown. Tab already exists in nav. |
-| Saved map links | 🔲 | `lib/types.ts`, `lib/storage.ts`, `app/trips/[tripId]/page.tsx`, `components/trip/TripCard.tsx` (todo) | Store user-pasted Google Maps / My Maps links per trip (label + url), e.g. "Germany", "Italy". **Add/edit/delete only on the itinerary (trip home) page**, in the "At a glance" sidebar under a "Google Maps — Saved Places" heading. Dashboard `TripCard` surfaces them **read-only** (compact list or count). Links open in a new tab. |
-| Trip cover image | 🔲 | `lib/types.ts` (`coverImage` already exists), `app/page.tsx` / `components/trip/TripCard.tsx`, `app/trips/[tripId]/page.tsx` (todo) | Let the user set an image for a trip; show it on the dashboard `TripCard` tile (and the trip-home cover banner, replacing the gradient placeholder). Uses the existing optional `Trip.coverImage` field. |
+
+| Feature                             | Status | Key files                                                                                                                           | Notes                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trip dashboard                      | ✅      | `app/page.tsx`, `components/trip/TripCard.tsx`                                                                                      | Lists trips; empty state; delete on card hover                                                                                                                                                                                                                                                                                           |
+| Create new trip                     | ✅      | `app/trips/new/page.tsx`                                                                                                            | Name + date range; validates end after start                                                                                                                                                                                                                                                                                             |
+| Trip home (itinerary + at-a-glance) | 🏗️    | `app/trips/[tripId]/page.tsx`, `components/itinerary/ItineraryDayColumn.tsx`                                                        | The trip landing page IS the day-by-day itinerary (main column) with an "At a glance" summary panel to the right (dates, day count, cost totals). Replaces the old Overview. Itinerary logic already exists and is tested; the merge into the landing page is the remaining work.                                                        |
+| Lodging                             | ✅      | `app/trips/[tripId]/lodging/page.tsx`, `components/trip/LodgingCard.tsx`                                                            | Add / edit / delete                                                                                                                                                                                                                                                                                                                      |
+| Transportation                      | ✅      | `app/trips/[tripId]/transportation/page.tsx`, `components/trip/TransportationCard.tsx`                                              | Add / edit / delete                                                                                                                                                                                                                                                                                                                      |
+| Activities                          | ✅      | `app/trips/[tripId]/activities/page.tsx`, `components/trip/ActivityCard.tsx`                                                        | Add / edit / delete                                                                                                                                                                                                                                                                                                                      |
+| Budget summary                      | 🔲     | `app/trips/[tripId]/budget/page.tsx` (todo)                                                                                         | Total cost by category (lodging / transport / activities) with a recharts chart; optional per-day breakdown. Tab already exists in nav.                                                                                                                                                                                                  |
+| Saved map links                     | ✅      | `lib/types.ts`, `lib/storage.ts`, `app/trips/[tripId]/page.tsx`, `components/trip/TripCard.tsx` (todo)                              | Store user-pasted Google Maps / My Maps links per trip (label + url), e.g. "Germany", "Italy". **Add/edit/delete only on the itinerary (trip home) page**, in the "At a glance" sidebar under a "Google Maps — Saved Places" heading. Dashboard `TripCard` surfaces them **read-only** (compact list or count). Links open in a new tab. |
+| Trip cover image                    | 🔲     | `lib/types.ts` (`coverImage` already exists), `app/page.tsx` / `components/trip/TripCard.tsx`, `app/trips/[tripId]/page.tsx` (todo) | Let the user set an image for a trip; show it on the dashboard `TripCard` tile (and the trip-home cover banner, replacing the gradient placeholder). Uses the existing optional `Trip.coverImage` field.                                                                                                                                 |
+
 
 ## Phase 2 — Stretch goals
 
-| Goal | Status | Notes |
-|------|--------|-------|
-| Drag-and-drop reordering of activities within a day | 💡 | Use dnd-kit |
-| Interactive map view | 💡 | Leaflet or Mapbox; plot destinations / lodging |
-| Supabase backend | 💡 | Replace localStorage — should only require changing `lib/storage.ts` (see Decision log) |
-| Export / print view | 💡 | Print-friendly itinerary |
-| Trip sharing via read-only link | 💡 | Depends on a real backend |
+
+| Goal                                                | Status | Notes                                                                                   |
+| --------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| Drag-and-drop reordering of activities within a day | 💡     | Use dnd-kit                                                                             |
+| Interactive map view                                | 💡     | Leaflet or Mapbox; plot destinations / lodging                                          |
+| Supabase backend                                    | 💡     | Replace localStorage — should only require changing `lib/storage.ts` (see Decision log) |
+| Export / print view                                 | 💡     | Print-friendly itinerary                                                                |
+| Trip sharing via read-only link                     | 💡     | Depends on a real backend                                                               |
+
 
 ## Conventions checklist (definition of done per feature)
 
@@ -75,6 +81,7 @@ Dated one-liners for choices a fresh session shouldn't have to re-derive.
 
 ## References
 
-- Architecture / conventions / commands: [`CLAUDE.md`](./CLAUDE.md)
-- Design wireframes: https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f
+- Architecture / conventions / commands: `[CLAUDE.md](./CLAUDE.md)`
+- Design wireframes: [https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f](https://claude.ai/design/p/99c07230-3e6e-424a-8f6c-d9031eed280f)
 - Tests: `npm test` (Vitest + React Testing Library)
+
