@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { Map, Pencil, Trash2 } from "lucide-react";
 import { Trip } from "@/lib/types";
 import { deleteTrip } from "@/lib/storage";
 
@@ -35,6 +35,7 @@ export default function TripCard({
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const destinationCount = trip.destinations.length;
+  const mapLinks = trip.mapLinks ?? [];
 
   function handleDelete() {
     deleteTrip(trip.id);
@@ -76,6 +77,19 @@ export default function TripCard({
                 {destinationCount > 3 && (
                   <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">
                     +{destinationCount - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {mapLinks.length > 0 && (
+              <div className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+                <Map size={11} className="flex-none" />
+                {mapLinks.length > 2 ? (
+                  <span>🗺️ {mapLinks.length} maps</span>
+                ) : (
+                  <span className="truncate">
+                    {mapLinks.map((m) => m.label).join(", ")}
                   </span>
                 )}
               </div>

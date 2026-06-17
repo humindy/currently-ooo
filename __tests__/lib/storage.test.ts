@@ -5,6 +5,9 @@ import {
   getTrip,
   getTrips,
   deleteTrip,
+  addMapLink,
+  updateMapLink,
+  deleteMapLink,
 } from "@/lib/storage";
 
 beforeEach(() => {
@@ -25,6 +28,7 @@ describe("createTrip", () => {
     expect(trip.lodging).toEqual([]);
     expect(trip.transportation).toEqual([]);
     expect(trip.activities).toEqual([]);
+    expect(trip.mapLinks).toEqual([]);
   });
 
   it("generates a unique id on each call", () => {
@@ -104,5 +108,97 @@ describe("deleteTrip", () => {
     saveTrip(trip);
     deleteTrip("unknown-id");
     expect(getTrips()).toHaveLength(1);
+  });
+});
+
+describe("addMapLink", () => {
+  it("adds a map link with a generated id and persists it", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "Tokyo Restaurants", url: "https://maps.google.com/foo" });
+
+    const saved = getTrip(trip.id)!;
+    expect(saved.mapLinks).toHaveLength(1);
+    expect(saved.mapLinks[0]).toMatchObject({
+      label: "Tokyo Restaurants",
+      url: "https://maps.google.com/foo",
+    });
+    expect(saved.mapLinks[0].id).toBeTruthy();
+  });
+
+  it("appends to existing map links without overwriting them", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "First", url: "https://maps.google.com/a" });
+    addMapLink(trip.id, { label: "Second", url: "https://maps.google.com/b" });
+
+    const saved = getTrip(trip.id)!;
+    expect(saved.mapLinks).toHaveLength(2);
+    expect(saved.mapLinks.map((m) => m.label)).toEqual(["First", "Second"]);
+  });
+
+  it("is a no-op for an unknown trip id", () => {
+    addMapLink("unknown-id", { label: "X", url: "https://maps.google.com/x" });
+    expect(getTrips()).toHaveLength(0);
+  });
+});
+
+describe("updateMapLink", () => {
+  it("updates the matching map link in place", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "Original", url: "https://maps.google.com/a" });
+    const mapLink = getTrip(trip.id)!.mapLinks[0];
+
+    updateMapLink(trip.id, { ...mapLink, label: "Updated", url: "https://maps.google.com/b" });
+
+    const saved = getTrip(trip.id)!;
+    expect(saved.mapLinks).toHaveLength(1);
+    expect(saved.mapLinks[0]).toMatchObject({
+      id: mapLink.id,
+      label: "Updated",
+      url: "https://maps.google.com/b",
+    });
+  });
+
+  it("leaves other map links untouched", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "First", url: "https://maps.google.com/a" });
+    addMapLink(trip.id, { label: "Second", url: "https://maps.google.com/b" });
+    const [first, second] = getTrip(trip.id)!.mapLinks;
+
+    updateMapLink(trip.id, { ...first, label: "First Updated" });
+
+    const saved = getTrip(trip.id)!;
+    expect(saved.mapLinks.find((m) => m.id === first.id)?.label).toBe("First Updated");
+    expect(saved.mapLinks.find((m) => m.id === second.id)?.label).toBe("Second");
+  });
+});
+
+describe("deleteMapLink", () => {
+  it("removes the matching map link", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "Tokyo", url: "https://maps.google.com/a" });
+    const mapLink = getTrip(trip.id)!.mapLinks[0];
+
+    deleteMapLink(trip.id, mapLink.id);
+
+    expect(getTrip(trip.id)!.mapLinks).toHaveLength(0);
+  });
+
+  it("leaves other map links intact", () => {
+    const trip = createTrip("Japan", "2026-04-04", "2026-04-15");
+    saveTrip(trip);
+    addMapLink(trip.id, { label: "First", url: "https://maps.google.com/a" });
+    addMapLink(trip.id, { label: "Second", url: "https://maps.google.com/b" });
+    const [first, second] = getTrip(trip.id)!.mapLinks;
+
+    deleteMapLink(trip.id, first.id);
+
+    const saved = getTrip(trip.id)!;
+    expect(saved.mapLinks).toHaveLength(1);
+    expect(saved.mapLinks[0].id).toBe(second.id);
   });
 });

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TripPage from "@/app/trips/[tripId]/page";
 import { generateDates, buildDayItems } from "@/lib/itinerary";
 import { saveTrip } from "@/lib/storage";
-import type { Activity, Lodging, Transportation, Trip } from "@/lib/types";
+import type { Activity, Lodging, MapLink, Transportation, Trip } from "@/lib/types";
 
 vi.mock("next/link", () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +29,7 @@ const TEST_TRIP: Trip = {
   lodging: [],
   transportation: [],
   activities: [],
+  mapLinks: [],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -62,6 +64,12 @@ const ACTIVITY: Activity = {
   startTime: "19:00",
   location: "Ginza, Tokyo",
   cost: 450,
+};
+
+const MAP_LINK: MapLink = {
+  id: "m-1",
+  label: "Tokyo Restaurants",
+  url: "https://maps.google.com/foo",
 };
 
 beforeEach(() => {
@@ -248,6 +256,93 @@ describe("TripPage — item rendering", () => {
       // TEST_TRIP has no items → all 3 days show the placeholder
       expect(placeholders).toHaveLength(3);
     });
+  });
+});
+
+describe("TripPage — saved map links", () => {
+  it("shows the empty state when there are no saved links", async () => {
+    render(<TripPage />);
+    await waitFor(() =>
+      expect(screen.getByText("No saved maps yet")).toBeInTheDocument()
+    );
+  });
+
+  it("renders saved links as clickable labels opening in a new tab", async () => {
+    saveTrip({ ...TEST_TRIP, mapLinks: [MAP_LINK] });
+    render(<TripPage />);
+    await waitFor(() => {
+      const link = screen.getByRole("link", { name: "Tokyo Restaurants" });
+      expect(link).toHaveAttribute("href", "https://maps.google.com/foo");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+  });
+
+  it("opens the add modal when 'Add link' is clicked", async () => {
+    const user = userEvent.setup();
+    render(<TripPage />);
+    await waitFor(() => screen.getByText("No saved maps yet"));
+    await user.click(screen.getByRole("button", { name: /add link/i }));
+    expect(screen.getByText("Add map link")).toBeInTheDocument();
+  });
+
+  it("rejects an empty label/url submission with inline errors", async () => {
+    const user = userEvent.setup();
+    render(<TripPage />);
+    await waitFor(() => screen.getByText("No saved maps yet"));
+    await user.click(screen.getByRole("button", { name: /add link/i }));
+    await user.click(screen.getByRole("button", { name: "Save link" }));
+    expect(screen.getByText("Label is required.")).toBeInTheDocument();
+    expect(screen.getByText("URL is required.")).toBeInTheDocument();
+  });
+
+  it("rejects a non-https url with an inline error", async () => {
+    const user = userEvent.setup();
+    render(<TripPage />);
+    await waitFor(() => screen.getByText("No saved maps yet"));
+    await user.click(screen.getByRole("button", { name: /add link/i }));
+    await user.type(screen.getByPlaceholderText(/tokyo restaurants/i), "Bad Link");
+    await user.type(
+      screen.getByPlaceholderText(/maps\.google\.com/i),
+      "http://maps.google.com/foo"
+    );
+    await user.click(screen.getByRole("button", { name: "Save link" }));
+    expect(screen.getByText("Enter a valid https:// URL.")).toBeInTheDocument();
+  });
+
+  it("adds a new map link on valid submission", async () => {
+    const user = userEvent.setup();
+    render(<TripPage />);
+    await waitFor(() => screen.getByText("No saved maps yet"));
+    await user.click(screen.getByRole("button", { name: /add link/i }));
+    await user.type(screen.getByPlaceholderText(/tokyo restaurants/i), "Kyoto Temples");
+    await user.type(
+      screen.getByPlaceholderText(/maps\.google\.com/i),
+      "https://maps.google.com/kyoto"
+    );
+    await user.click(screen.getByRole("button", { name: "Save link" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("link", { name: "Kyoto Temples" })
+      ).toBeInTheDocument()
+    );
+  });
+
+  it("shows a confirmation dialog and removes the link on delete", async () => {
+    const user = userEvent.setup();
+    saveTrip({ ...TEST_TRIP, mapLinks: [MAP_LINK] });
+    render(<TripPage />);
+    await waitFor(() =>
+      screen.getByRole("link", { name: "Tokyo Restaurants" })
+    );
+    await user.click(
+      screen.getByRole("button", { name: /delete tokyo restaurants/i })
+    );
+    expect(screen.getByText("Remove map link?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    await waitFor(() =>
+      expect(screen.getByText("No saved maps yet")).toBeInTheDocument()
+    );
   });
 });
 

@@ -15,6 +15,7 @@ export interface Trip {
     lodging: Lodging[];
     transportation: Transportation[];
     activities: Activity[];
+    mapLinks: MapLink[];
     createdAt: string; // ISO timestamp
     updatedAt: string; // ISO timestamp
   }
@@ -105,6 +106,16 @@ export interface Trip {
     notes?: string;
   }
   
+  /**
+   * A saved Google Maps / My Maps link for the trip, e.g. a custom map
+   * pinning restaurants or a shared route.
+   */
+  export interface MapLink {
+    id: string;
+    label: string;
+    url: string;
+  }
+
   /**
    * Union type representing any item that can appear on the
    * day-by-day itinerary timeline. Useful for rendering a unified,

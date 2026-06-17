@@ -6,6 +6,7 @@ import {
     Lodging,
     Transportation,
     Activity,
+    MapLink,
   } from "./types";
   
   const STORAGE_KEY = "currently-ooo:trips";
@@ -109,6 +110,7 @@ import {
       lodging: [],
       transportation: [],
       activities: [],
+      mapLinks: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -184,5 +186,39 @@ import {
     };
   
     trip.activities.push(newActivity);
+    saveTrip(trip);
+  }
+
+  export function addMapLink(
+    tripId: string,
+    mapLink: Omit<MapLink, "id">
+  ): void {
+    const trip = getTrip(tripId);
+    if (!trip) return;
+
+    const newMapLink: MapLink = {
+      ...mapLink,
+      id: crypto.randomUUID(),
+    };
+
+    trip.mapLinks = [...(trip.mapLinks ?? []), newMapLink];
+    saveTrip(trip);
+  }
+
+  export function updateMapLink(tripId: string, mapLink: MapLink): void {
+    const trip = getTrip(tripId);
+    if (!trip) return;
+
+    trip.mapLinks = (trip.mapLinks ?? []).map((m) =>
+      m.id === mapLink.id ? mapLink : m
+    );
+    saveTrip(trip);
+  }
+
+  export function deleteMapLink(tripId: string, mapLinkId: string): void {
+    const trip = getTrip(tripId);
+    if (!trip) return;
+
+    trip.mapLinks = (trip.mapLinks ?? []).filter((m) => m.id !== mapLinkId);
     saveTrip(trip);
   }

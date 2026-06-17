@@ -44,6 +44,7 @@ const trip: Trip = {
   lodging: [],
   transportation: [],
   activities: [],
+  mapLinks: [],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -118,5 +119,36 @@ describe("TripCard", () => {
 
     expect(storage.deleteTrip).toHaveBeenCalledWith("trip-1");
     expect(onDelete).toHaveBeenCalledOnce();
+  });
+
+  it("renders nothing for the map links section when there are none", () => {
+    render(<TripCard trip={trip} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    expect(screen.queryByText(/maps$/i)).not.toBeInTheDocument();
+  });
+
+  it("renders saved map link labels read-only", () => {
+    const tripWithMaps: Trip = {
+      ...trip,
+      mapLinks: [
+        { id: "m-1", label: "Tokyo Restaurants", url: "https://maps.google.com/a" },
+        { id: "m-2", label: "Kyoto Temples", url: "https://maps.google.com/b" },
+      ],
+    };
+    render(<TripCard trip={tripWithMaps} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    expect(screen.getByText("Tokyo Restaurants, Kyoto Temples")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /edit tokyo restaurants/i })).not.toBeInTheDocument();
+  });
+
+  it("shows a count indicator when there are several map links", () => {
+    const tripWithManyMaps: Trip = {
+      ...trip,
+      mapLinks: [
+        { id: "m-1", label: "Tokyo Restaurants", url: "https://maps.google.com/a" },
+        { id: "m-2", label: "Kyoto Temples", url: "https://maps.google.com/b" },
+        { id: "m-3", label: "Osaka Eats", url: "https://maps.google.com/c" },
+      ],
+    };
+    render(<TripCard trip={tripWithManyMaps} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    expect(screen.getByText(/3 maps/)).toBeInTheDocument();
   });
 });

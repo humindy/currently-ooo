@@ -34,7 +34,9 @@ Design wireframes: "Wayfarer Wireframes" — https://claude.ai/design/p/99c07230
 | Lodging | ✅ | `app/trips/[tripId]/lodging/page.tsx`, `components/trip/LodgingCard.tsx` | Add / edit / delete |
 | Transportation | ✅ | `app/trips/[tripId]/transportation/page.tsx`, `components/trip/TransportationCard.tsx` | Add / edit / delete |
 | Activities | ✅ | `app/trips/[tripId]/activities/page.tsx`, `components/trip/ActivityCard.tsx` | Add / edit / delete |
-| Budget summary | 🔲 | `app/trips/[tripId]/budget/page.tsx` (todo) | Total cost by category (lodging / transport / activities) with a recharts chart; per-day or per-destination breakdown. Tab already exists in nav. |
+| Budget summary | 🔲 | `app/trips/[tripId]/budget/page.tsx` (todo) | Total cost by category (lodging / transport / activities) with a recharts chart; optional per-day breakdown. Tab already exists in nav. |
+| Saved map links | 🔲 | `lib/types.ts`, `lib/storage.ts`, `app/trips/[tripId]/page.tsx`, `components/trip/TripCard.tsx` (todo) | Store user-pasted Google Maps / My Maps links per trip (label + url), e.g. "Germany", "Italy". **Add/edit/delete only on the itinerary (trip home) page**, in the "At a glance" sidebar under a "Google Maps — Saved Places" heading. Dashboard `TripCard` surfaces them **read-only** (compact list or count). Links open in a new tab. |
+| Trip cover image | 🔲 | `lib/types.ts` (`coverImage` already exists), `app/page.tsx` / `components/trip/TripCard.tsx`, `app/trips/[tripId]/page.tsx` (todo) | Let the user set an image for a trip; show it on the dashboard `TripCard` tile (and the trip-home cover banner, replacing the gradient placeholder). Uses the existing optional `Trip.coverImage` field. |
 
 ## Phase 2 — Stretch goals
 
@@ -68,6 +70,8 @@ Dated one-liners for choices a fresh session shouldn't have to re-derive.
 - **2026-06-16** — One feature per commit (see git history pattern).
 - **2026-06-17** — Restructured the trip landing page: the old Overview (Destinations + Quick access) is replaced by the day-by-day itinerary as the main column, with an "At a glance" summary panel (dates, day count, cost totals) to the right. The separate "Day-by-Day" tab/route is removed — the trip home IS the itinerary.
 - **2026-06-17** — Cut the **Destinations** UI. It had no add flow and the `destinationId` links on `Lodging`/`Activity` were unused, so the section was dead. The `Destination` type and `addDestination` helper remain in code for now (no cost to leaving them); may be reintroduced later as itinerary day-grouping (e.g. "Tokyo → Kyoto" segments).
+- **2026-06-17** — For "see my places on a map," chose **user-pasted Google Maps / My Maps links** (label + url, stored per trip) over an in-app rendered map. Rationale: no API key/geocoding needed, fits the localStorage model, and sharing works for free since Google hosts the map. The themed in-app **map view** stays a Phase 2 stretch. Map-link CRUD lives **only on the itinerary (trip home) page**; the dashboard card shows them read-only — managing CRUD inside a small dashboard tile is too cramped.
+- **2026-06-17** — When reading `Trip.mapLinks`, always default to `[]` (`trip.mapLinks ?? []`) since trips already saved in localStorage predate the field. Map-link URLs are validated as `https://` URLs only (not restricted to google.com domains).
 
 ## References
 
